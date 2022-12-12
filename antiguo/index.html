@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
+    <title>Calidad del aire (antiguo)</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        .legend { line-height: 18px; color: #555; background-color: #fff; padding: 5px;}
+        .legend i { opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        let iaqis = [];
+    </script>
+    <script src="iaqi_february.js"></script>
+    <script src="iaqi_march.js"></script>
+    <script src="iaqi_april.js"></script>
+    <script src="iaqi_may.js"></script>
+    <script>
+        const IAQI_MIN = 1;
+        const IAQI_MAX = 4;
+        const IAQI_STEP = 0.1;
+
+        const num_buckets = Math.round((IAQI_MAX - IAQI_MIN) / IAQI_STEP);
+        const iaqiColors = ["#00a798", "#3b7b76", "#ffc12e", "#ff932e", "#ff5355"];
+
+        const solidAreaStyle = (feature) => {
+            return {
+                fillColor: iaqiColors[feature.properties.DN],
+                fillOpacity: 0.5,
+                weight: 0
+            }
+        };
+
+        const cartoVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            minZoom: 5,
+            maxZoom: 18
+        });
+
+        const iaqiFebruary = L.geoJson(iaqis[0], {
+            onEachFeature: (feature, layer) => {
+                layer.bindTooltip(feature.properties.DN.toString(), { sticky: true });
+            },
+            style: solidAreaStyle
+        });
+
+        const iaqiMarch = L.geoJson(iaqis[1], {
+            onEachFeature: (feature, layer) => {
+                layer.bindTooltip(feature.properties.DN.toString(), { sticky: true });
+            },
+            style: solidAreaStyle
+        });
+
+        const iaqiApril = L.geoJson(iaqis[2], {
+            onEachFeature: (feature, layer) => {
+                layer.bindTooltip(feature.properties.DN.toString(), { sticky: true });
+            },
+            style: solidAreaStyle
+        });
+
+        const iaqiMay = L.geoJson(iaqis[3], {
+            onEachFeature: (feature, layer) => {
+                layer.bindTooltip(feature.properties.DN.toString(), { sticky: true });
+            },
+            style: solidAreaStyle
+        });
+
+        const map = L.map('map', {
+            center: [40.4447855983, -3.51565533182],
+            zoom: 10,
+            minZoom: 5,
+            maxZoom: 18,
+            layers: [cartoVoyager, iaqiFebruary]
+        });
+
+        const dataLayers = {"IAQI febrero": iaqiFebruary, "IAQI marzo": iaqiMarch, "IAQI abril": iaqiApril, "IAQI mayo": iaqiMay}
+
+        L.control.layers(dataLayers, null, {collapsed: false}).addTo(map);
+
+        const legend = L.control({position: 'bottomright'});
+
+        legend.onAdd = (map) => {
+            const div = L.DomUtil.create('div', 'legend'),
+            labels = [];
+
+            div.innerHTML += '<span class="iaqi-solid-legend">Muy buena</span> '
+            for (let iaqiColor of iaqiColors) {
+                div.innerHTML +=
+                    '<i class="iaqi-solid-legend" style="background:' + iaqiColor + '">&nbsp;</i>';
+            }
+            div.innerHTML += ' <span class="iaqi-solid-legend">Muy mala</span>'
+
+            return div;
+        };
+
+        legend.addTo(map);
+    </script>
+</body>
+</html>
